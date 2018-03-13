@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+'''
+A module that adds data to the Pillar structure from a NetBox API.
+
+
+Configuring the NetBox ext_pillar
+====================================
+
+.. code-block:: yaml
+
+  ext_pillar:
+    - netbox:
+        api_url: http://netbox_url.com/api/
+        api_token: 123abc
+        napalm_username: admin
+
+Create a token in your NetBox instance at
+http://netbox_url.com/user/api-tokens/
+
+
+
+'''
+
+
+import logging
+
+try:
+    import requests
+    import ipaddress
+    _HAS_DEPENDENCIES = True
+except ImportError:
+    _HAS_DEPENDENCIES = False
+
+log = logging.getLogger(__name__)
+
+
+def __virtual__():
+    return _HAS_DEPENDENCIES
+
+
+def ext_pillar(minion_id, pillar, *args, **kwargs):
+
+    # Pull settings from kwargs
+    api_url = kwargs['api_url'].rstrip('/')
+    api_token = kwargs['api_token']
+    napalm_username = kwargs.get('napalm_username', None)
+
+    ret = {}
+
+    # Fetch device from API
+    device_results = requests.get(
+        api_url + '/dcim/devices/',
+        params={'name': minion_id, },
+        headers={'Authorization': 'Token ' + api_token},
+    )
+
+    # Check status code for API call
+    if device_results.status_code != requests.codes.ok:
+        log.warn('API query failed for "%s", status code: %d' % (
+            minion_id, device_results.status_code))
+
+    # Assign results from API call to "netbox" key
+    try:
+        devices = device_results.json()['results']
+        if len(devices) == 1:
+            ret['netbox'] = devices[0]
+        elif len(devices) > 1:
+            log.error('More than one device found for "%s"' % minion_id)
+    except Exception:
+        log.error('Device not found for "%s"' % minion_id)
+
+    # Attempt to add "proxy" key, based on platform API call
+    try:
+        # Fetch device from API
+        platform_results = requests.get(
+            ret['netbox']['platform']['url'],
+            headers={'Authorization': 'Token ' + api_token},
+        )
+
+        # Check status code for API call
+        if platform_results.status_code != requests.codes.ok:
+            log.info('API query failed for "%s", status code: %d' % (
+                minion_id, platform_results.status_code))
+
+        # Assign results from API call to "proxy" key
+        ret['proxy'] = {
+            'host': str(ipaddress.IPv4Interface(
+                        ret['netbox']['primary_ip4']['address']).ip),
+            'driver': platform_results.json()['napalm_driver'],
+            'proxytype': 'napalm',
+            'username': napalm_username,
+        }
+    except Exception:
+        log.debug('Could not create proxy config data for "%s"' % minion_id)
+
+    return ret
