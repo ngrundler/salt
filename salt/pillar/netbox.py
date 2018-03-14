@@ -88,8 +88,11 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
                         ret['netbox']['primary_ip4']['address']).ip),
             'driver': platform_results.json()['napalm_driver'],
             'proxytype': 'napalm',
-            'username': napalm_username,
         }
+
+        if napalm_username:
+            ret['proxy']['username'] = napalm_username
+
     except Exception:
         log.debug('Could not create proxy config data for "%s"' % minion_id)
 
