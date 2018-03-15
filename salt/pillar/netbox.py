@@ -39,6 +39,7 @@ configured in pillar_roots.
 '''
 
 
+from __future__ import absolute_import, print_function, unicode_literals
 import logging
 
 try:
@@ -77,8 +78,8 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
 
     # Check status code for API call
     if device_results.status_code != requests.codes.ok:
-        log.warn('API query failed for "%s", status code: %d' % (
-            minion_id, device_results.status_code))
+        log.warn('API query failed for "%s", status code: %d',
+            minion_id, device_results.status_code)
 
     # Assign results from API call to "netbox" key
     try:
@@ -88,7 +89,7 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
         elif len(devices) > 1:
             log.error('More than one device found for "%s"' % minion_id)
     except Exception:
-        log.error('Device not found for "%s"' % minion_id)
+        log.error('Device not found for "%s"', minion_id)
     if proxy_return:
         # Attempt to add "proxy" key, based on platform API call
         try:
@@ -100,8 +101,8 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
 
             # Check status code for API call
             if platform_results.status_code != requests.codes.ok:
-                log.info('API query failed for "%s", status code: %d' % (
-                    minion_id, platform_results.status_code))
+                log.info('API query failed for "%s", status code: %d',
+                    minion_id, platform_results.status_code)
 
             # Assign results from API call to "proxy" key
             ret['proxy'] = {
@@ -116,6 +117,6 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
 
         except Exception:
             log.debug(
-                'Could not create proxy config data for "%s"' % minion_id)
+                'Could not create proxy config data for "%s"', minion_id)
 
     return ret
