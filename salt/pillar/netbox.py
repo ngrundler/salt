@@ -17,7 +17,7 @@ Create a token in your NetBox instance at
 http://netbox_url.com/user/api-tokens/
 
 The following options are optional, and determine whether or not
-the module will attempt to configure the ``proxy`` pillar date for
+the module will attempt to configure the ``proxy`` pillar data for
 use with the napalm proxy-minion:
 
 .. code-block:: yaml
@@ -25,12 +25,16 @@ use with the napalm proxy-minion:
         proxy_return: True
         proxy_username: admin
 
-This module assumes you're using SSH keys to authenticate to 
-the network device.  If password authentication is desired,
-it is recommended to create another ``proxy`` key in pillar_roots
-(or git_pillar) with just the ``passwd`` key and use
+By default, this module will query the NetBox API for the platform
+associated with the device, and use the 'NAPALM driver' field to 
+set the napalm proxy-minion driver.
+
+This module currently only supports the napalm proxy minion and assumes
+you will use SSH keys to authenticate to the network device.  If password 
+authentication is desired, it is recommended to create another ``proxy`` 
+key in pillar_roots (or git_pillar) with just the ``passwd`` key and use
 :py:func:`salt.renderers.gpg <salt.renderers.gpg>` to encrypt the value.
-If any additional ``proxy`` arguments are needed they should also be
+If any additional options for the proxy setup are needed they should also be
 configured in pillar_roots.
 
 
