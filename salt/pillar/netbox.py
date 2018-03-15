@@ -26,12 +26,12 @@ use with the napalm proxy-minion:
         proxy_username: admin
 
 By default, this module will query the NetBox API for the platform
-associated with the device, and use the 'NAPALM driver' field to 
+associated with the device, and use the 'NAPALM driver' field to
 set the napalm proxy-minion driver.
 
 This module currently only supports the napalm proxy minion and assumes
-you will use SSH keys to authenticate to the network device.  If password 
-authentication is desired, it is recommended to create another ``proxy`` 
+you will use SSH keys to authenticate to the network device.  If password
+authentication is desired, it is recommended to create another ``proxy``
 key in pillar_roots (or git_pillar) with just the ``passwd`` key and use
 :py:func:`salt.renderers.gpg <salt.renderers.gpg>` to encrypt the value.
 If any additional options for the proxy setup are needed they should also be
@@ -115,6 +115,7 @@ def ext_pillar(minion_id, pillar, *args, **kwargs):
                 ret['proxy']['username'] = proxy_username
 
         except Exception:
-            log.debug('Could not create proxy config data for "%s"' % minion_id)
+            log.debug(
+                'Could not create proxy config data for "%s"' % minion_id)
 
     return ret
